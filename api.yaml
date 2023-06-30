@@ -1,0 +1,339 @@
+openapi: 3.0.4
+info:
+  title: TN Calculator API
+  description: |-
+    All in One calculator string generator and authentication server
+  contact:
+    email: felipe@moralesm.cl
+  license:
+    name: MIT
+    url: https://opensource.org/license/mit/
+  version: 1.0.0
+externalDocs:
+  description: Source Code
+  url: https://github.com/femoral/tn-calculator-api
+servers:
+  - url: http://localhost:3000/v1
+paths:
+  /sessions:
+    post:
+      tags:
+        - authentication
+      summary: Validates user credentials and creates a session
+      operationId: userLogin
+      requestBody:
+        $ref: '#/components/requestBodies/PostSessionRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/PostSessionResponse'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /sessions/{sessionId}:
+    delete:
+      tags:
+        - authentication
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      summary: Deletes an existing session
+      operationId: userLogout
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /users/{userId}:
+    get:
+      tags:
+        - users
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      summary: Get user by id
+      operationId: getUserById
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          $ref: '#/components/responses/GetUserResponse'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /users/{userId}/records:
+    get:
+      tags:
+        - records
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      summary: Get user records
+      operationId: getUserRecords
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          $ref: '#/components/responses/GetUserRecordsResponse'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      tags:
+        - records
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      summary: Executes an operation and creates a new record
+      operationId: createUserRecords
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        $ref: '#/components/requestBodies/PostUserRecordRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/PostUserRecordResponse'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /users/{userId}/records/{recordId}:
+    delete:
+      tags:
+        - records
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/RecordId'
+      summary: Disables a user record
+      operationId: disableUserRecordById
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+components:
+  schemas:
+    SessionRequest:
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: username
+          example: john123
+        password:
+          type: string
+          description: user password
+          example: P4ssw0rd
+    SessionResponse:
+      required:
+        - session_id
+      properties:
+        session_id:
+          $ref: '#/components/schemas/SessionId'
+    SessionId:
+      type: string
+      description: opaque token for user authorization
+      example: 2e7815497aea7edf48ad86d10fb49e84e612cc4c354b3d95b58b70d13fd88c66
+    User:
+      required:
+        - id
+        - username
+      properties:
+        id:
+          type: string
+          example: 123
+          description: user id
+        username:
+          type: string
+          description: username
+          example: john123
+    Record:
+      required:
+        - id
+        - operation_id
+        - user_id
+        - amount
+        - user_balance
+        - operation_response
+        - date
+      properties:
+        id:
+          type: number
+          example: 10
+          description: id of the record
+        operation_id:
+          type: string
+          example: 9d845822-78ac-432c-8974-b1d3a3c3ea5b
+          description: id of the operation associated with the record
+        user_id:
+          type: string
+          example: 28e73f15-bc26-49ff-8fdc-238d90e14034
+          description: id of the user who triggered the operation
+        amount:
+          type: string
+          example: 100
+          format: number
+          description: cost of the operation
+        user_balance:
+          type: string
+          example: 500
+          format: number
+          description: remaining user balance after the operation was performed
+        operation_response:
+          type: string
+          example: 123
+          description: result of the operation
+        date:
+          type: string
+          example: '2023‐06‐30T03:31:09Z'
+          format: date-time
+          description: ISO 8601 date-time when the record was created
+    OperationExecution:
+      required:
+        - operation_id
+      properties:
+        operation_id:
+          type: string
+          description: Id of the operation
+          enum:
+            - ADDITION
+            - SUBTRACTION
+            - MULTIPLICATION
+            - DIVISION
+            - SQUARE_ROOT
+            - RANDOM_STRING
+        operands:
+          type: array
+          description: List of operands for arithmetic operations, not required for RANDOM_STRING
+          example: [427, 238]
+          items:
+            type: string
+            description: operand
+            format: number
+    Metadata:
+      properties:
+        next_page_cursor:
+          type: string
+          description: Cursor of the next page
+          example: 21
+        page_size:
+          type: integer
+          description: Number of records returned on each page
+          example: 20
+          maximum: 50
+
+  requestBodies:
+    PostSessionRequest:
+      description: User credentials
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SessionRequest'
+    PostUserRecordRequest:
+      description: Operands and operation to execute
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OperationExecution'
+
+
+  responses:
+    PostSessionResponse:
+      description: Created session id
+      content:
+        application/json:
+          schema:
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/SessionResponse'
+    GetUserResponse:
+      description: User information
+      content:
+        application/json:
+          schema:
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/User'
+    GetUserRecordsResponse:
+      description: User records
+      content:
+        application/json:
+          schema:
+            required:
+              - data
+              - metadata
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Record'
+              metadata:
+                $ref: '#/components/schemas/Metadata'
+    PostUserRecordResponse:
+      description: Record created after executing the operation
+      content:
+        application/json:
+          schema:
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/Record'
+    NoContent:
+      description: No Content
+    InvalidCredentials:
+      description: Invalid credentials
+    Unauthorized:
+      description: Unauthorized
+    ServerError:
+      description: Server Error
+
+
+  parameters:
+    SessionId:
+      in: 'path'
+      name: sessionId
+      example: 2e7815497aea7edf48ad86d10fb49e84e612cc4c354b3d95b58b70d13fd88c66
+    UserId:
+      in: 'path'
+      name: userId
+      description: unique id of the user
+      example: 123
+    RecordId:
+      in: 'path'
+      name: recordId
+      description: id of the record, unique by user
+      example: 11
+
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
