@@ -1,4 +1,5 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import { Pool } from 'pg';
 import {
   makeGetUserController,
@@ -7,8 +8,19 @@ import {
 import { makeCreateUserInteractor } from './users/create-user.interactor';
 import { makeCreateUserRepository } from './users/data/create-user.repository';
 import { makeGetUserInteractor } from './users/get-user.interactor';
-import { makeGetUserRepository } from './users/data/get-user.repository';
+import { makeGetUserByIdRepository } from './users/data/get-user-by-id.repository';
 import { makePassword } from './common/crypto/password';
+import { makeCache } from './common/cache/redis';
+import { makeCreateSessionRepository } from './sessions/data/create-session.repository';
+import { makeCreateSessionInteractor } from './sessions/create-session.interactor';
+import {
+  makeDeleteSessionController,
+  makePostSessionController,
+} from './sessions/session.controller';
+import { makeGetUserByUsernameRepository } from './sessions/data/get-user-by-username.repository';
+import { makeDeleteSessionInteractor } from './sessions/delete-session.interactor';
+import { makeDeleteSessionRepository } from './sessions/data/delete-session.repository';
+import { makeSessionMiddleware } from './middleware/session.middleware';
 
 const environment = {
   db: {
@@ -22,6 +34,9 @@ const environment = {
       max: 10,
     },
   },
+  redis: {
+    url: 'redis://localhost:6379',
+  },
 };
 
 const pool = new Pool({
@@ -33,9 +48,12 @@ const pool = new Pool({
   ...environment.db.pool,
 });
 
+const password = makePassword();
+
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 
 const getPoolHealth = async () => {
   try {
@@ -64,20 +82,46 @@ app.post(
     createUserInteractor: makeCreateUserInteractor({
       createUserRepository: makeCreateUserRepository({
         pool,
-        password: makePassword(),
+        password,
       }),
     }),
   })
 );
 
-app.get(
-  '/v1/users/:id',
-  makeGetUserController({
-    getUserInteractor: makeGetUserInteractor({
-      getUserRepository: makeGetUserRepository({ pool }),
-    }),
-  })
-);
+makeCache(environment).then((cache) => {
+  const sessionMiddleware = makeSessionMiddleware(cache);
+
+  app.get(
+    '/v1/users/:id',
+    sessionMiddleware,
+    makeGetUserController({
+      getUserInteractor: makeGetUserInteractor({
+        getUserByIdRepository: makeGetUserByIdRepository({ pool }),
+      }),
+    })
+  );
+
+  app.post(
+    '/V1/sessions',
+    makePostSessionController({
+      createSessionInteractor: makeCreateSessionInteractor({
+        createSessionRepository: makeCreateSessionRepository({ cache }),
+        getUserByUsername: makeGetUserByUsernameRepository({ pool }),
+        password,
+      }),
+    })
+  );
+
+  app.delete(
+    '/v1/sessions',
+    sessionMiddleware,
+    makeDeleteSessionController({
+      deleteSessionInteractor: makeDeleteSessionInteractor({
+        deleteSessionRepository: makeDeleteSessionRepository({ cache }),
+      }),
+    })
+  );
+});
 
 app.listen(3000, () => {
   console.log('Server started ');

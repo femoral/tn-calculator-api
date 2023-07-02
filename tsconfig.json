@@ -2,5 +2,9 @@
   "extends": "@tsconfig/node18/tsconfig.json",
   "compilerOptions": {
     "outDir": "dist"
-  }
+  },
+  "files": [
+    "src/index.ts",
+    "src/typings.d.ts"
+  ],
 }

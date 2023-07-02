@@ -19,7 +19,7 @@ paths:
     post:
       tags:
         - authentication
-      summary: Validates user credentials and creates a session
+      summary: Validates user credentials and creates a session cookie
       operationId: userLogin
       requestBody:
         $ref: '#/components/requestBodies/PostSessionRequest'
@@ -31,16 +31,13 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
-  /sessions/{sessionId}:
     delete:
       tags:
         - authentication
-      parameters:
-        - $ref: '#/components/parameters/SessionId'
-      summary: Deletes an existing session
+      summary: Deletes an existing session, identifying by the session cookie
       operationId: userLogout
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
@@ -60,7 +57,7 @@ paths:
       summary: Get user by id
       operationId: getUserById
       security:
-        - bearerAuth: [ ]
+        - cookieAuth: [ ]
       responses:
         '200':
           $ref: '#/components/responses/GetUserResponse'
@@ -80,7 +77,7 @@ paths:
       summary: Get user records
       operationId: getUserRecords
       security:
-        - bearerAuth: [ ]
+        - cookieAuth: [ ]
       responses:
         '200':
           $ref: '#/components/responses/GetUserRecordsResponse'
@@ -98,7 +95,7 @@ paths:
       summary: Executes an operation and creates a new record
       operationId: createUserRecords
       security:
-        - bearerAuth: [ ]
+        - cookieAuth: [ ]
       requestBody:
         $ref: '#/components/requestBodies/PostUserRecordRequest'
       responses:
@@ -121,7 +118,7 @@ paths:
       summary: Disables a user record
       operationId: disableUserRecordById
       security:
-        - bearerAuth: [ ]
+        - cookieAuth: [ ]
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
@@ -147,16 +144,6 @@ components:
           type: string
           description: user password
           example: P4ssw0rd
-    SessionResponse:
-      required:
-        - session_id
-      properties:
-        session_id:
-          $ref: '#/components/schemas/SessionId'
-    SessionId:
-      type: string
-      description: opaque token for user authorization
-      example: 2e7815497aea7edf48ad86d10fb49e84e612cc4c354b3d95b58b70d13fd88c66
     User:
       required:
         - id
@@ -262,15 +249,13 @@ components:
 
   responses:
     PostSessionResponse:
-      description: Created session id
-      content:
-        application/json:
+      description: session cookie
+      headers:
+        Set-Cookie:
           schema:
-            required:
-              - data
-            properties:
-              data:
-                $ref: '#/components/schemas/SessionResponse'
+            type: string
+            description: session cookie
+            example: SESSION=eyJhb;HttpOnly;Path=/;Max-Age=3600;Secure;SameSite=Strict
     GetUserResponse:
       description: User information
       content:
@@ -317,10 +302,6 @@ components:
 
 
   parameters:
-    SessionId:
-      in: 'path'
-      name: sessionId
-      example: 2e7815497aea7edf48ad86d10fb49e84e612cc4c354b3d95b58b70d13fd88c66
     UserId:
       in: 'path'
       name: userId
@@ -337,3 +318,7 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: SESSION

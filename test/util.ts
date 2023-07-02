@@ -5,6 +5,9 @@ export const mockResponse = () => {
 
   res.json = jest.fn();
   res.send = jest.fn();
+  res.end = jest.fn();
+  res.clearCookie = jest.fn(() => res);
+  res.cookie = jest.fn(() => res);
   res.status = jest.fn(() => res);
 
   return res;

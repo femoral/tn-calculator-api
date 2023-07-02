@@ -9,8 +9,7 @@ type TypedExpressRequest<
   TParams,
   TResponse extends void ? void : ApiResponse<TResponse>,
   TRequest,
-  TQuery,
-  NonNullable<unknown>
+  TQuery
 >;
 
 type TypedExpressResponse<TResponse> = Response<

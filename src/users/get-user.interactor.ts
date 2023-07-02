@@ -1,11 +1,16 @@
 import { User } from './user.model';
 
-export type GetUserRepository = (id: string) => Promise<User>;
+export type GetUserByIdRepository = (
+  id: string,
+  includeCredentials?: boolean
+) => Promise<User>;
 
 export type GetUserInteractor = (id: string) => Promise<User>;
 
 export const makeGetUserInteractor =
-  (dependencies: { getUserRepository: GetUserRepository }): GetUserInteractor =>
+  (dependencies: {
+    getUserByIdRepository: GetUserByIdRepository;
+  }): GetUserInteractor =>
   async (user) => {
-    return await dependencies.getUserRepository(user);
+    return await dependencies.getUserByIdRepository(user);
   };
