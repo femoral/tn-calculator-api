@@ -4,4 +4,5 @@ module.exports = {
   testEnvironment: 'node',
   collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**'],
   testMatch: ['**/*.spec.ts'],
+  clearMocks: true,
 };
