@@ -30,6 +30,7 @@ import { makeStringOperator } from './operations/operator/string.operator';
 import axios from 'axios';
 import helmet from 'helmet';
 import https from 'node:https';
+import { makeErrorMiddleware } from './middleware/error.middleware';
 
 const environment = {
   db: {
@@ -72,85 +73,86 @@ const getPoolHealth = async () => {
       const result = await client.query("select 'UP' as status");
       return result.rows[0]['status'];
     } catch (e) {
+      //TODO: implement proper logging
       console.error(e);
       return 'DOWN';
     } finally {
       client.release();
     }
   } catch (e) {
+    //TODO: implement proper logging
     console.error(e);
     return 'DOWN';
   }
 };
-app.get('/health', async (req, res) => {
-  res.send({ status: 'UP', pool: await getPoolHealth() });
-});
 
-app.post(
-  '/v1/users',
-  makePostUserController({
+makeCache(environment).then((cache) => {
+  const sessionMiddleware = makeSessionMiddleware(cache);
+
+  app.get('/health', async (req, res) => {
+    res.send({
+      status: 'UP',
+      db: await getPoolHealth(),
+      cache: cache.health(),
+    });
+  });
+
+  const postUserController = makePostUserController({
     createUser: makeCreateUserInteractor({
       createUser: makeCreateUserRepository({
         pool,
         password,
       }),
     }),
-  })
-);
+  });
 
-makeCache(environment).then((cache) => {
-  const sessionMiddleware = makeSessionMiddleware(cache);
+  const getUserController = makeGetUserController({
+    getUser: makeGetUserInteractor({
+      getUserById: makeGetUserByIdRepository({ pool }),
+    }),
+  });
 
-  app.get(
-    '/v1/users/:id',
-    sessionMiddleware,
-    makeGetUserController({
-      getUser: makeGetUserInteractor({
-        getUserById: makeGetUserByIdRepository({ pool }),
-      }),
-    })
-  );
+  const postSessionController = makePostSessionController({
+    createSession: makeCreateSessionInteractor({
+      createSession: makeCreateSessionRepository({ cache }),
+      getUserByUsername: makeGetUserByUsernameRepository({ pool }),
+      password,
+    }),
+  });
 
-  app.post(
-    '/V1/sessions',
-    makePostSessionController({
-      createSession: makeCreateSessionInteractor({
-        createSession: makeCreateSessionRepository({ cache }),
-        getUserByUsername: makeGetUserByUsernameRepository({ pool }),
-        password,
-      }),
-    })
-  );
-
-  app.delete(
-    '/v1/sessions',
-    sessionMiddleware,
-    makeDeleteSessionController({
-      deleteSession: makeDeleteSessionInteractor({
-        deleteSession: makeDeleteSessionRepository({ cache }),
-      }),
-    })
-  );
-
-  app.post(
-    '/v1/users/:userId/records',
-    sessionMiddleware,
-    makePostRecordController({
-      executeOperation: makeExecuteOperationInteractor({
-        createRecord: makeCreateRecordRepository({ pool }),
-        getOperationByType: makeGetOperationByTypeRepository({ pool }),
-        executeArithmeticOperation: makeArithmeticOperator(),
-        executeStringOperation: makeStringOperator({
-          axios: axios.create({
-            baseURL: 'https://www.random.org',
-            httpsAgent: new https.Agent({ keepAlive: true }),
-          }),
+  const postRecordController = makePostRecordController({
+    executeOperation: makeExecuteOperationInteractor({
+      createRecord: makeCreateRecordRepository({ pool }),
+      getOperationByType: makeGetOperationByTypeRepository({ pool }),
+      executeArithmeticOperation: makeArithmeticOperator(),
+      executeStringOperation: makeStringOperator({
+        axios: axios.create({
+          baseURL: 'https://www.random.org',
+          httpsAgent: new https.Agent({ keepAlive: true }),
         }),
       }),
-    })
-  );
-});
+    }),
+  });
 
-app.listen(3000, () => {
-  console.log('Server started ');
+  const deleteSessionController = makeDeleteSessionController({
+    deleteSession: makeDeleteSessionInteractor({
+      deleteSession: makeDeleteSessionRepository({ cache }),
+    }),
+  });
+
+  app.post('/v1/users', postUserController);
+  app.post('/V1/sessions', postSessionController);
+
+  app.use(sessionMiddleware);
+
+  app.get('/v1/users/:id', getUserController);
+  app.delete('/v1/sessions', deleteSessionController);
+  app.post('/v1/users/:userId/records', postRecordController);
+
+  app.use(makeErrorMiddleware());
+
+  app.listen(3000, () => {
+    //TODO: implement proper logging
+    console.log('Server started ');
+  });
 });

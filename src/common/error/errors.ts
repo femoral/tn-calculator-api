@@ -1,34 +1,57 @@
-export class NotFoundError extends Error {
-  constructor(message: string) {
+export type KnownErrorName =
+  | 'NotFoundError'
+  | 'UnauthorizedError'
+  | 'ForbiddenError'
+  | 'BadRequestError'
+  | 'UnprocessableEntityError';
+
+export abstract class KnownError extends Error {
+  name: KnownErrorName;
+
+  protected constructor(message: string, name: KnownErrorName) {
     super(message);
-    this.name = 'NotFoundError';
+    this.name = name;
   }
 }
 
-export class UnauthorizedError extends Error {
+export class NotFoundError extends KnownError {
   constructor(message: string) {
-    super(message);
-    this.name = 'UnauthorizedError';
+    super(message, 'NotFoundError');
   }
 }
 
-export class ForbiddenError extends Error {
+export class UnauthorizedError extends KnownError {
   constructor(message: string) {
-    super(message);
-    this.name = 'ForbiddenError';
+    super(message, 'UnauthorizedError');
   }
 }
 
-export class BadRequestError extends Error {
+export class ForbiddenError extends KnownError {
   constructor(message: string) {
-    super(message);
-    this.name = 'BadRequestError';
+    super(message, 'ForbiddenError');
   }
 }
 
-export class UnprocessableEntityError extends Error {
+export class BadRequestError extends KnownError {
   constructor(message: string) {
-    super(message);
-    this.name = 'UnprocessableEntityError';
+    super(message, 'BadRequestError');
   }
 }
+
+export class UnprocessableEntityError extends KnownError {
+  constructor(message: string) {
+    super(message, 'UnprocessableEntityError');
+  }
+}
+
+export type HandledError = {
+  code: number;
+  body: {
+    metadata: {
+      error: {
+        code: string;
+        message: string;
+      };
+    };
+  };
+};

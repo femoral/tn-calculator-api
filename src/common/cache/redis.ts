@@ -22,10 +22,15 @@ const del = async (key: string) => {
   await client.del(key);
 };
 
+const health = () => {
+  return client.isOpen ? 'UP' : 'DOWN';
+};
+
 export type Cache = {
   get: typeof get;
   set: typeof set;
   del: typeof del;
+  health: typeof health;
 };
 
 export const makeCache = async (environment: any): Promise<Cache> => {
@@ -39,5 +44,6 @@ export const makeCache = async (environment: any): Promise<Cache> => {
     get,
     set,
     del,
+    health,
   };
 };
