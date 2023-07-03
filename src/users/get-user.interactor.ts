@@ -8,9 +8,7 @@ export type GetUserByIdRepository = (
 export type GetUserInteractor = (id: string) => Promise<User>;
 
 export const makeGetUserInteractor =
-  (dependencies: {
-    getUserByIdRepository: GetUserByIdRepository;
-  }): GetUserInteractor =>
+  (dependencies: { getUserById: GetUserByIdRepository }): GetUserInteractor =>
   async (user) => {
-    return await dependencies.getUserByIdRepository(user);
+    return await dependencies.getUserById(user);
   };

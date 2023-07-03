@@ -18,3 +18,17 @@ export class ForbiddenError extends Error {
     this.name = 'ForbiddenError';
   }
 }
+
+export class BadRequestError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'BadRequestError';
+  }
+}
+
+export class UnprocessableEntityError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'UnprocessableEntityError';
+  }
+}

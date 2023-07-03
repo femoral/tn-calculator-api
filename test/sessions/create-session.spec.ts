@@ -40,8 +40,8 @@ describe('Create Session', () => {
 
   beforeEach(() => {
     postSessionController = makePostSessionController({
-      createSessionInteractor: makeCreateSessionInteractor({
-        createSessionRepository: makeCreateSessionRepository({
+      createSession: makeCreateSessionInteractor({
+        createSession: makeCreateSessionRepository({
           cache: cache as any,
         }),
         password: password as any,

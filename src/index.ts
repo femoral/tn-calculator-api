@@ -21,6 +21,15 @@ import { makeGetUserByUsernameRepository } from './sessions/data/get-user-by-use
 import { makeDeleteSessionInteractor } from './sessions/delete-session.interactor';
 import { makeDeleteSessionRepository } from './sessions/data/delete-session.repository';
 import { makeSessionMiddleware } from './middleware/session.middleware';
+import { makePostRecordController } from './records/record.controller';
+import { makeExecuteOperationInteractor } from './records/execute-operation.interactor';
+import { makeCreateRecordRepository } from './records/data/create-record.repository';
+import { makeGetOperationByTypeRepository } from './operations/data/get-operation-by-type.repository';
+import { makeArithmeticOperator } from './operations/operator/arithmetic.operator';
+import { makeStringOperator } from './operations/operator/string.operator';
+import axios from 'axios';
+import helmet from 'helmet';
+import https from 'node:https';
 
 const environment = {
   db: {
@@ -54,6 +63,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(helmet());
 
 const getPoolHealth = async () => {
   try {
@@ -79,8 +89,8 @@ app.get('/health', async (req, res) => {
 app.post(
   '/v1/users',
   makePostUserController({
-    createUserInteractor: makeCreateUserInteractor({
-      createUserRepository: makeCreateUserRepository({
+    createUser: makeCreateUserInteractor({
+      createUser: makeCreateUserRepository({
         pool,
         password,
       }),
@@ -95,8 +105,8 @@ makeCache(environment).then((cache) => {
     '/v1/users/:id',
     sessionMiddleware,
     makeGetUserController({
-      getUserInteractor: makeGetUserInteractor({
-        getUserByIdRepository: makeGetUserByIdRepository({ pool }),
+      getUser: makeGetUserInteractor({
+        getUserById: makeGetUserByIdRepository({ pool }),
       }),
     })
   );
@@ -104,8 +114,8 @@ makeCache(environment).then((cache) => {
   app.post(
     '/V1/sessions',
     makePostSessionController({
-      createSessionInteractor: makeCreateSessionInteractor({
-        createSessionRepository: makeCreateSessionRepository({ cache }),
+      createSession: makeCreateSessionInteractor({
+        createSession: makeCreateSessionRepository({ cache }),
         getUserByUsername: makeGetUserByUsernameRepository({ pool }),
         password,
       }),
@@ -116,8 +126,26 @@ makeCache(environment).then((cache) => {
     '/v1/sessions',
     sessionMiddleware,
     makeDeleteSessionController({
-      deleteSessionInteractor: makeDeleteSessionInteractor({
-        deleteSessionRepository: makeDeleteSessionRepository({ cache }),
+      deleteSession: makeDeleteSessionInteractor({
+        deleteSession: makeDeleteSessionRepository({ cache }),
+      }),
+    })
+  );
+
+  app.post(
+    '/v1/users/:userId/records',
+    sessionMiddleware,
+    makePostRecordController({
+      executeOperation: makeExecuteOperationInteractor({
+        createRecord: makeCreateRecordRepository({ pool }),
+        getOperationByType: makeGetOperationByTypeRepository({ pool }),
+        executeArithmeticOperation: makeArithmeticOperator(),
+        executeStringOperation: makeStringOperator({
+          axios: axios.create({
+            baseURL: 'https://www.random.org',
+            httpsAgent: new https.Agent({ keepAlive: true }),
+          }),
+        }),
       }),
     })
   );

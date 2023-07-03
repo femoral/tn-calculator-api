@@ -5,9 +5,7 @@ export type CreateUserRepository = (user: CreateUserRequest) => Promise<User>;
 export type CreateUserInteractor = (user: CreateUserRequest) => Promise<User>;
 
 export const makeCreateUserInteractor =
-  (dependencies: {
-    createUserRepository: CreateUserRepository;
-  }): CreateUserInteractor =>
+  (dependencies: { createUser: CreateUserRepository }): CreateUserInteractor =>
   async (user) => {
-    return await dependencies.createUserRepository(user);
+    return await dependencies.createUser(user);
   };

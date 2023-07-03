@@ -14,7 +14,7 @@ export type CreateSessionInteractor = (
 
 export const makeCreateSessionInteractor =
   (dependencies: {
-    createSessionRepository: CreateSessionRepository;
+    createSession: CreateSessionRepository;
     getUserByUsername: GetUserByUsernameRepository;
     password: Password;
   }): CreateSessionInteractor =>
@@ -27,5 +27,5 @@ export const makeCreateSessionInteractor =
       throw new UnauthorizedError('Invalid credentials');
     }
 
-    return await dependencies.createSessionRepository(user);
+    return await dependencies.createSession(user);
   };

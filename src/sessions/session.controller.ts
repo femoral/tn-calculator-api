@@ -10,10 +10,10 @@ export type PostSessionController = TypedExpressHandler<void, UserCredentials>;
 
 export const makePostSessionController =
   (dependencies: {
-    createSessionInteractor: CreateSessionInteractor;
+    createSession: CreateSessionInteractor;
   }): PostSessionController =>
   async (req, res) => {
-    const token = await dependencies.createSessionInteractor(req.body);
+    const token = await dependencies.createSession(req.body);
     res
       .cookie(SESSION_COOKIE, token, {
         secure: true,
@@ -30,10 +30,10 @@ export type DeleteSessionController = TypedExpressHandler;
 
 export const makeDeleteSessionController =
   (dependencies: {
-    deleteSessionInteractor: DeleteSessionInteractor;
+    deleteSession: DeleteSessionInteractor;
   }): DeleteSessionController =>
   async (req, res) => {
-    await dependencies.deleteSessionInteractor(req.cookies.SESSION);
+    await dependencies.deleteSession(req.cookies.SESSION);
 
     res.clearCookie(SESSION_COOKIE).status(204).end();
   };

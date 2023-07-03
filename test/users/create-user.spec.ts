@@ -25,8 +25,8 @@ describe('Create User', () => {
 
   beforeEach(() => {
     createUserController = makePostUserController({
-      createUserInteractor: makeCreateUserInteractor({
-        createUserRepository: makeCreateUserRepository({
+      createUser: makeCreateUserInteractor({
+        createUser: makeCreateUserRepository({
           pool: pool as any,
           password: password as any,
         }),

@@ -24,8 +24,8 @@ describe('Get User', () => {
 
   beforeEach(() => {
     getUserController = makeGetUserController({
-      getUserInteractor: makeGetUserInteractor({
-        getUserByIdRepository: makeGetUserByIdRepository({ pool: pool as any }),
+      getUser: makeGetUserInteractor({
+        getUserById: makeGetUserByIdRepository({ pool: pool as any }),
       }),
     });
   });

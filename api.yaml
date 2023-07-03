@@ -200,9 +200,9 @@ components:
           description: ISO 8601 date-time when the record was created
     OperationExecution:
       required:
-        - operation_id
+        - operation_type
       properties:
-        operation_id:
+        operation_type:
           type: string
           description: Id of the operation
           enum:

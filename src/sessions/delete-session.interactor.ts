@@ -4,8 +4,8 @@ export type DeleteSessionInteractor = (token: string) => Promise<void>;
 
 export const makeDeleteSessionInteractor =
   (dependencies: {
-    deleteSessionRepository: DeleteSessionRepository;
+    deleteSession: DeleteSessionRepository;
   }): DeleteSessionInteractor =>
   async (token) => {
-    await dependencies.deleteSessionRepository(token);
+    await dependencies.deleteSession(token);
   };

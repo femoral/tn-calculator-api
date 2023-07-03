@@ -1,31 +1,17 @@
-import { NextFunction, Request, Response } from 'express';
-
-type TypedExpressRequest<
-  TResponse = void,
-  TRequest = void,
-  TParams = unknown,
-  TQuery = unknown
-> = Request<
-  TParams,
-  TResponse extends void ? void : ApiResponse<TResponse>,
-  TRequest,
-  TQuery
->;
-
-type TypedExpressResponse<TResponse> = Response<
-  TResponse extends void ? void : ApiResponse<TResponse>
->;
+import { RequestHandler } from 'express';
+import Session = Express.Session;
 
 export type TypedExpressHandler<
   TResponse = void,
   TRequest = void,
   TParams = unknown,
   TQuery = unknown
-> = (
-  req: TypedExpressRequest<TResponse, TRequest, TParams, TQuery>,
-  res: TypedExpressResponse<TResponse>,
-  next: NextFunction
-) => void;
+> = RequestHandler<
+  TParams,
+  TResponse extends void ? void : ApiResponse<TResponse>,
+  TRequest,
+  TQuery
+>;
 
 type ApiResponse<TData> = {
   data: TData;
@@ -33,4 +19,8 @@ type ApiResponse<TData> = {
     next_page_cursor?: string;
     page_size?: number;
   };
+};
+
+export type Context = {
+  session: Session;
 };

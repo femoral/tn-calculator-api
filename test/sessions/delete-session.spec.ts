@@ -20,8 +20,8 @@ describe('Delete Session', () => {
 
   beforeEach(() => {
     deleteSessionController = makeDeleteSessionController({
-      deleteSessionInteractor: makeDeleteSessionInteractor({
-        deleteSessionRepository: makeDeleteSessionRepository({
+      deleteSession: makeDeleteSessionInteractor({
+        deleteSession: makeDeleteSessionRepository({
           cache: cache as any,
         }),
       }),

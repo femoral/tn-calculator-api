@@ -7,24 +7,22 @@ import { ForbiddenError } from '../common/error/errors';
 export type PostUserController = TypedExpressHandler<User, CreateUserRequest>;
 
 export const makePostUserController =
-  (dependencies: {
-    createUserInteractor: CreateUserInteractor;
-  }): PostUserController =>
+  (dependencies: { createUser: CreateUserInteractor }): PostUserController =>
   async (req, res) => {
     res.status(201).json({
-      data: await dependencies.createUserInteractor(req.body),
+      data: await dependencies.createUser(req.body),
     });
   };
 
 export type GetUserController = TypedExpressHandler<User, void, { id: string }>;
 
 export const makeGetUserController =
-  (dependencies: { getUserInteractor: GetUserInteractor }): GetUserController =>
+  (dependencies: { getUser: GetUserInteractor }): GetUserController =>
   async (req, res) => {
     if (req.session.userId !== req.params.id)
-      throw new ForbiddenError('Resource not owned');
+      throw new ForbiddenError('You are not allowed to access this resource');
 
     res.json({
-      data: await dependencies.getUserInteractor(req.params.id),
+      data: await dependencies.getUser(req.params.id),
     });
   };
