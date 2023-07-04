@@ -37,6 +37,9 @@ import { makeErrorMiddleware } from './middleware/error.middleware';
 import { makeGetRecordsInteractor } from './records/get-records.interactor';
 import { makeGetRecordsByUserIdRepository } from './records/data/get-records-by-user-id.repository';
 import { withErrorHandling } from './common/error/handler';
+import { makeGetOperationsController } from './operations/operation.controller';
+import { makeGetOperationsInteractor } from './operations/get-operations.interactor';
+import { makeGetOperationsRepository } from './operations/data/get-operations.repository';
 
 const environment = {
   db: {
@@ -152,6 +155,12 @@ makeCache(environment).then((cache) => {
     }),
   });
 
+  const getOperationsController = makeGetOperationsController({
+    getOperations: makeGetOperationsInteractor({
+      getOperations: makeGetOperationsRepository({ pool }),
+    }),
+  });
+
   app.post('/v1/users', withErrorHandling(postUserController));
   app.post('/V1/sessions', withErrorHandling(postSessionController));
 
@@ -164,6 +173,8 @@ makeCache(environment).then((cache) => {
     '/v1/users/:userId/records',
     withErrorHandling(postRecordController)
   );
+
+  app.get('/v1/operations', withErrorHandling(getOperationsController));
 
   app.use(makeErrorMiddleware());
 

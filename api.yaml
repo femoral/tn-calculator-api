@@ -131,6 +131,22 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /operations:
+    get:
+      tags:
+          - operations
+      summary: Get all operations
+      operationId: getOperations
+      security:
+        - cookieAuth: [ ]
+      responses:
+        '200':
+          $ref: '#/components/responses/GetOperationsResponse'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
 components:
   schemas:
     SessionRequest:
@@ -174,7 +190,7 @@ components:
           example: 10
           description: id of the record
         operation_id:
-          type: string
+          type: number
           example: 9d845822-78ac-432c-8974-b1d3a3c3ea5b
           description: id of the operation associated with the record
         user_id:
@@ -205,15 +221,7 @@ components:
         - operation_type
       properties:
         operation_type:
-          type: string
-          description: Id of the operation
-          enum:
-            - ADDITION
-            - SUBTRACTION
-            - MULTIPLICATION
-            - DIVISION
-            - SQUARE_ROOT
-            - RANDOM_STRING
+          $ref: '#/components/schemas/OperationType'
         operands:
           type: array
           description: List of operands for arithmetic operations, not required for RANDOM_STRING
@@ -222,6 +230,16 @@ components:
             type: string
             description: operand
             format: number
+    OperationType:
+      type: string
+      description: Type of the operation
+      enum:
+        - ADDITION
+        - SUBTRACTION
+        - MULTIPLICATION
+        - DIVISION
+        - SQUARE_ROOT
+        - RANDOM_STRING
     Metadata:
       properties:
         page_size:
@@ -238,7 +256,23 @@ components:
           type: integer
           description: Total number of pages
           example: 5
-
+    Operation:
+      required:
+        - id
+        - cost
+        - type
+      properties:
+        id:
+          type: integer
+          description: Id of the operation
+          example: 1
+        cost:
+          type: string
+          description: Cost of the operation
+          example: 100
+          format: number
+        type:
+          $ref: '#/components/schemas/OperationType'
   requestBodies:
     PostSessionRequest:
       description: User credentials
@@ -298,6 +332,18 @@ components:
             properties:
               data:
                 $ref: '#/components/schemas/Record'
+    GetOperationsResponse:
+      description: List of operations
+      content:
+        application/json:
+          schema:
+            required:
+            - data
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Operation'
     NoContent:
       description: No Content
     InvalidCredentials:
