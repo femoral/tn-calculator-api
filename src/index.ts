@@ -21,7 +21,10 @@ import { makeGetUserByUsernameRepository } from './sessions/data/get-user-by-use
 import { makeDeleteSessionInteractor } from './sessions/delete-session.interactor';
 import { makeDeleteSessionRepository } from './sessions/data/delete-session.repository';
 import { makeSessionMiddleware } from './middleware/session.middleware';
-import { makePostRecordController } from './records/record.controller';
+import {
+  makeGetRecordsController,
+  makePostRecordController,
+} from './records/record.controller';
 import { makeExecuteOperationInteractor } from './records/execute-operation.interactor';
 import { makeCreateRecordRepository } from './records/data/create-record.repository';
 import { makeGetOperationByTypeRepository } from './operations/data/get-operation-by-type.repository';
@@ -31,6 +34,9 @@ import axios from 'axios';
 import helmet from 'helmet';
 import https from 'node:https';
 import { makeErrorMiddleware } from './middleware/error.middleware';
+import { makeGetRecordsInteractor } from './records/get-records.interactor';
+import { makeGetRecordsByUserIdRepository } from './records/data/get-records-by-user-id.repository';
+import { withErrorHandling } from './common/error/handler';
 
 const environment = {
   db: {
@@ -140,14 +146,24 @@ makeCache(environment).then((cache) => {
     }),
   });
 
-  app.post('/v1/users', postUserController);
-  app.post('/V1/sessions', postSessionController);
+  const getRecordsController = makeGetRecordsController({
+    getRecords: makeGetRecordsInteractor({
+      getRecordsByUserId: makeGetRecordsByUserIdRepository({ pool }),
+    }),
+  });
+
+  app.post('/v1/users', withErrorHandling(postUserController));
+  app.post('/V1/sessions', withErrorHandling(postSessionController));
 
   app.use(sessionMiddleware);
 
-  app.get('/v1/users/:id', getUserController);
-  app.delete('/v1/sessions', deleteSessionController);
-  app.post('/v1/users/:userId/records', postRecordController);
+  app.get('/v1/users/:userId', withErrorHandling(getUserController));
+  app.delete('/v1/sessions', withErrorHandling(deleteSessionController));
+  app.get('/v1/users/:userId/records', withErrorHandling(getRecordsController));
+  app.post(
+    '/v1/users/:userId/records',
+    withErrorHandling(postRecordController)
+  );
 
   app.use(makeErrorMiddleware());
 

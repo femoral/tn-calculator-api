@@ -14,15 +14,19 @@ export const makePostUserController =
     });
   };
 
-export type GetUserController = TypedExpressHandler<User, void, { id: string }>;
+export type GetUserController = TypedExpressHandler<
+  User,
+  void,
+  { userId: string }
+>;
 
 export const makeGetUserController =
   (dependencies: { getUser: GetUserInteractor }): GetUserController =>
   async (req, res) => {
-    if (req.session.userId !== req.params.id)
+    if (req.session.userId !== req.params.userId)
       throw new ForbiddenError('You are not allowed to access this resource');
 
     res.json({
-      data: await dependencies.getUser(req.params.id),
+      data: await dependencies.getUser(req.params.userId),
     });
   };

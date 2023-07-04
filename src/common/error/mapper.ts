@@ -20,7 +20,7 @@ const knownErrorMapper: KnownErrorMapper = {
   NotFoundError: makeDefaultMapper(404),
   UnauthorizedError: makeDefaultMapper(401),
   ForbiddenError: makeDefaultMapper(403),
-  InvalidInputError: makeDefaultMapper(400),
+  BadRequestError: makeDefaultMapper(400),
   UnprocessableEntityError: makeDefaultMapper(422),
 };
 

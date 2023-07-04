@@ -7,3 +7,14 @@ export type Record = {
   operation_response: string;
   date: string;
 };
+
+export type GetRecordsRequest = {
+  filter: Partial<Record>;
+  page: number;
+  page_size: number;
+};
+
+export type RecordsResult = {
+  records: Record[];
+  full_count: number;
+};

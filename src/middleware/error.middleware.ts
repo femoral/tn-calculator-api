@@ -2,7 +2,8 @@ import { ErrorRequestHandler } from 'express';
 import { mapError } from '../common/error/mapper';
 
 export const makeErrorMiddleware =
-  (): ErrorRequestHandler => (err, req, res) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  (): ErrorRequestHandler => (err, req, res, next) => {
     //TODO: implement proper logging
     console.error(err);
 

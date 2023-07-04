@@ -13,11 +13,12 @@ export type TypedExpressHandler<
   TQuery
 >;
 
-type ApiResponse<TData> = {
+export type ApiResponse<TData> = {
   data: TData;
   metadata?: {
-    next_page_cursor?: string;
     page_size?: number;
+    total_count?: number;
+    total_pages?: number;
   };
 };
 

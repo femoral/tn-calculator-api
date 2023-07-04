@@ -74,6 +74,8 @@ paths:
         - records
       parameters:
         - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
       summary: Get user records
       operationId: getUserRecords
       security:
@@ -222,15 +224,20 @@ components:
             format: number
     Metadata:
       properties:
-        next_page_cursor:
-          type: string
-          description: Cursor of the next page
-          example: 21
         page_size:
           type: integer
           description: Number of records returned on each page
           example: 20
+          minimum: 5
           maximum: 50
+        total_count:
+          type: integer
+          description: Total number of records
+          example: 100
+        total_pages:
+          type: integer
+          description: Total number of pages
+          example: 5
 
   requestBodies:
     PostSessionRequest:
@@ -305,13 +312,32 @@ components:
     UserId:
       in: 'path'
       name: userId
+      required: true
       description: unique id of the user
       example: 123
     RecordId:
       in: 'path'
       name: recordId
+      required: true
       description: id of the record, unique by user
       example: 11
+    PageSize:
+      in: 'query'
+      name: page_size
+      description: number of records to return on each page
+      example: 20
+      schema:
+        type: integer
+        minimum: 5
+        maximum: 50
+    Page:
+        in: 'query'
+        name: page
+        description: cursor of the page to return
+        example: 5
+        schema:
+            type: integer
+            minimum: 1
 
 
   securitySchemes:

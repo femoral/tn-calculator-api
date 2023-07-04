@@ -269,7 +269,7 @@ describe('Create Record', () => {
           postRecordController(
             buildOperationExecutionRequestMock({
               operation_type: 'SUBTRACTION',
-              operands: ['1'],
+              operands: null,
             }),
             res,
             next

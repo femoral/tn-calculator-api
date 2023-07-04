@@ -8,7 +8,7 @@ import { BadRequestError } from '../../common/error/errors';
 export const makeArithmeticOperator =
   () => async (operation: ArithmeticOperation) => {
     return arithmeticOperationMap[operation.operation_type](
-      operation.operands || []
+      operation.operands ?? []
     ).toString();
   };
 

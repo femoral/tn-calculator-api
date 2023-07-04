@@ -41,7 +41,7 @@ export const buildOperationExecutionRequestMock = ({
   missMatchUserId = false,
 }: {
   operation_type?: OperationType;
-  operands?: string[];
+  operands?: string[] | null;
   missMatchUserId?: boolean;
 }) =>
   ({

@@ -13,6 +13,7 @@ import {
   buildGetUserWithDifferentIdRequest,
 } from './get-user.mock';
 import { ForbiddenError, NotFoundError } from '../../src/common/error/errors';
+import { Pool } from 'pg';
 
 describe('Get User', () => {
   let getUserController: GetUserController;
@@ -25,7 +26,9 @@ describe('Get User', () => {
   beforeEach(() => {
     getUserController = makeGetUserController({
       getUser: makeGetUserInteractor({
-        getUserById: makeGetUserByIdRepository({ pool: pool as any }),
+        getUserById: makeGetUserByIdRepository({
+          pool: pool as unknown as Pool,
+        }),
       }),
     });
   });
@@ -39,7 +42,7 @@ describe('Get User', () => {
       expect(pool.query).toHaveBeenNthCalledWith(
         1,
         `select id, username, balance from "user" where id = $1 and status = 'ENABLED'`,
-        [buildGetUserRequest().params.id]
+        [buildGetUserRequest().params.userId]
       );
     });
 
