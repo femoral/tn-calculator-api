@@ -48,7 +48,7 @@ describe('Create User', () => {
     );
   });
 
-  it('should hash the password, when called with user creation request', async () => {
+  it('should hash the crypto, when called with user creation request', async () => {
     await createUserController(buildCreateUserRequest(), res, next);
 
     expect(password.hash).toHaveBeenNthCalledWith(1, 'password');

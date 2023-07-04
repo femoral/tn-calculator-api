@@ -9,5 +9,5 @@ export const makeErrorMiddleware =
 
     const mappedError = mapError(err);
 
-    res.status(mappedError.code).send(mappedError.body);
+    res.status(mappedError.code).json(mappedError.body);
   };

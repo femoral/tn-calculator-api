@@ -71,7 +71,7 @@ describe('Create Session', () => {
       );
     });
 
-    it('should verify the password, when called', async () => {
+    it('should verify the crypto, when called', async () => {
       await postSessionController(buildUserCredentials(), res, next);
 
       expect(password.verify).toHaveBeenNthCalledWith(
