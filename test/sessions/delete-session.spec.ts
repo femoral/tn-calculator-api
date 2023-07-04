@@ -6,6 +6,7 @@ import { makeDeleteSessionInteractor } from '../../src/sessions/delete-session.i
 import { makeDeleteSessionRepository } from '../../src/sessions/data/delete-session.repository';
 import { mockResponse } from '../util';
 import { NextFunction } from 'express';
+import { Cache } from '../../src/common/cache/redis';
 import { buildDeleteSessionRequest } from './delete-session.mock';
 
 describe('Delete Session', () => {
@@ -22,7 +23,7 @@ describe('Delete Session', () => {
     deleteSessionController = makeDeleteSessionController({
       deleteSession: makeDeleteSessionInteractor({
         deleteSession: makeDeleteSessionRepository({
-          cache: cache as any,
+          cache: cache as unknown as Cache,
         }),
       }),
     });

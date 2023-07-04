@@ -1,3 +1,5 @@
+import { Request } from 'express';
+
 export const buildGetUserQueryResponse = () => ({
   rows: [
     {
@@ -9,9 +11,10 @@ export const buildGetUserQueryResponse = () => ({
   ],
 });
 
-export const buildUserCredentials = (): any => ({
-  body: {
-    username: 'test1@test.com',
-    password: 'password',
-  },
-});
+export const buildUserCredentials = (): Request =>
+  ({
+    body: {
+      username: 'test1@test.com',
+      password: 'password',
+    },
+  } as unknown as Request);

@@ -15,6 +15,9 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from '../../src/common/error/errors';
+import { Password } from '../../src/common/crypto/password';
+import { Cache } from '../../src/common/cache/redis';
+import { Pool } from 'pg';
 
 const randomBytes = Buffer.from('randomBytes');
 
@@ -42,11 +45,11 @@ describe('Create Session', () => {
     postSessionController = makePostSessionController({
       createSession: makeCreateSessionInteractor({
         createSession: makeCreateSessionRepository({
-          cache: cache as any,
+          cache: cache as unknown as Cache,
         }),
-        password: password as any,
+        password: password as unknown as Password,
         getUserByUsername: makeGetUserByUsernameRepository({
-          pool: pool as any,
+          pool: pool as unknown as Pool,
         }),
       }),
     });

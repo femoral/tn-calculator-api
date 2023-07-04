@@ -11,6 +11,8 @@ import {
   buildCreateUserRequest,
   buildCreateUserResponse,
 } from './create-user.mock';
+import { Pool } from 'pg';
+import { Password } from '../../src/common/crypto/password';
 
 describe('Create User', () => {
   let createUserController: PostUserController;
@@ -27,8 +29,8 @@ describe('Create User', () => {
     createUserController = makePostUserController({
       createUser: makeCreateUserInteractor({
         createUser: makeCreateUserRepository({
-          pool: pool as any,
-          password: password as any,
+          pool: pool as unknown as Pool,
+          password: password as unknown as Password,
         }),
       }),
     });
