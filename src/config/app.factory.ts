@@ -162,20 +162,20 @@ export const makeApp = async () => {
     }),
   });
 
-  app.post('/v1/users', withErrorHandling(postUserController));
-  app.post('/V1/sessions', withErrorHandling(postSessionController));
+  app.post('/api/v1/users', withErrorHandling(postUserController));
+  app.post('/api/v1/sessions', withErrorHandling(postSessionController));
 
   app.use(sessionMiddleware);
 
-  app.get('/v1/users/:userId', withErrorHandling(getUserController));
-  app.delete('/v1/sessions', withErrorHandling(deleteSessionController));
-  app.get('/v1/users/:userId/records', withErrorHandling(getRecordsController));
+  app.get('/api/v1/users/:userId', withErrorHandling(getUserController));
+  app.delete('/api/v1/sessions', withErrorHandling(deleteSessionController));
+  app.get('/api/v1/users/:userId/records', withErrorHandling(getRecordsController));
   app.post(
-    '/v1/users/:userId/records',
+    '/api/v1/users/:userId/records',
     withErrorHandling(postRecordController)
   );
 
-  app.get('/v1/operations', withErrorHandling(getOperationsController));
+  app.get('/api/v1/operations', withErrorHandling(getOperationsController));
 
   app.use(makeErrorMiddleware());
 

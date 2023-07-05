@@ -13,7 +13,7 @@ externalDocs:
   description: Source Code
   url: https://github.com/femoral/tn-calculator-api
 servers:
-  - url: http://localhost:3000/v1
+  - url: http://localhost:3000/api/v1
 paths:
   /sessions:
     post:
