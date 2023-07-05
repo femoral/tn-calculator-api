@@ -10,8 +10,10 @@ export const makeSessionMiddleware =
 
     const session = await cache.get(req.cookies.SESSION);
 
-    if (!session)
-      return next(new UnauthorizedError('Session expired or not found'));
+    if (!session) {
+        res.clearCookie('SESSION');
+        return next(new UnauthorizedError('Session expired or not found'));
+    }
 
     req.session = session;
 
