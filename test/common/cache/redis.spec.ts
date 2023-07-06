@@ -31,9 +31,7 @@ describe('Redis', () => {
 
   it('should call redis.createClient with redis url', async () => {
     cache = await makeCache({
-      redis: {
-        url: 'redis://localhost:6379',
-      },
+      url: 'redis://localhost:6379',
     });
 
     expect(createClient).toHaveBeenCalledWith({

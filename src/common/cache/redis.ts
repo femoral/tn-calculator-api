@@ -1,8 +1,20 @@
 import * as redis from 'redis';
+import {
+  RedisClientOptions,
+  RedisClientType,
+  RedisDefaultModules,
+  RedisFunctions,
+  RedisModules,
+  RedisScripts,
+} from 'redis';
 
 const DEFAULT_TTL = 60 * 10; // 10 minutes
 
-let client: redis.RedisClientType;
+let client: RedisClientType<
+  RedisDefaultModules & RedisModules,
+  RedisFunctions,
+  RedisScripts
+>;
 
 const get = async (key: string) => {
   const [, value] = await client
@@ -33,10 +45,10 @@ export type Cache = {
   health: typeof health;
 };
 
-export const makeCache = async (environment: any): Promise<Cache> => {
-  client = redis.createClient({
-    ...environment.redis,
-  });
+export const makeCache = async (
+  options: RedisClientOptions
+): Promise<Cache> => {
+  client = redis.createClient(options);
 
   await client.connect();
 

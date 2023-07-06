@@ -40,32 +40,13 @@ import { makeGetOperationsInteractor } from '../operations/get-operations.intera
 import { makeGetOperationsRepository } from '../operations/data/get-operations.repository';
 import { withErrorHandling } from '../common/error/handler';
 import { makeErrorMiddleware } from '../middleware/error.middleware';
+import { getDataBaseUrl } from './db';
+import { getFromEnv } from './env';
 
 export const makeApp = async () => {
-  const environment = {
-    db: {
-      host: 'localhost',
-      port: 5432,
-      database: 'postgres',
-      password: 'localtest',
-      user: 'postgres',
-      pool: {
-        min: 1,
-        max: 10,
-      },
-    },
-    redis: {
-      url: 'redis://localhost:6379',
-    },
-  };
-
-  const pool = new Pool({
-    host: environment.db.host,
-    port: environment.db.port,
-    password: environment.db.password,
-    user: environment.db.user,
-    database: environment.db.database,
-    ...environment.db.pool,
+  const pool = new Pool(getDataBaseUrl());
+  const cache = await makeCache({
+    url: getFromEnv('REDIS_URL', 'redis://localhost:6379'),
   });
 
   const app = express();
@@ -93,8 +74,6 @@ export const makeApp = async () => {
       return 'DOWN';
     }
   };
-
-  const cache = await makeCache(environment);
 
   const password = makePassword();
   const sessionMiddleware = makeSessionMiddleware(cache);
@@ -169,7 +148,10 @@ export const makeApp = async () => {
 
   app.get('/api/v1/users/:userId', withErrorHandling(getUserController));
   app.delete('/api/v1/sessions', withErrorHandling(deleteSessionController));
-  app.get('/api/v1/users/:userId/records', withErrorHandling(getRecordsController));
+  app.get(
+    '/api/v1/users/:userId/records',
+    withErrorHandling(getRecordsController)
+  );
   app.post(
     '/api/v1/users/:userId/records',
     withErrorHandling(postRecordController)
