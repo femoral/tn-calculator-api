@@ -162,6 +162,12 @@ components:
           type: string
           description: user password
           example: P4ssw0rd
+    SessionResponse:
+      required:
+        - user
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
     User:
       required:
         - id
@@ -175,6 +181,11 @@ components:
           type: string
           description: username
           example: john123
+        balance:
+          type: string
+          format: number
+          description: user balance
+          example: 500
     Record:
       required:
         - id
@@ -297,6 +308,14 @@ components:
             type: string
             description: session cookie
             example: SESSION=eyJhb;HttpOnly;Path=/;Max-Age=3600;Secure;SameSite=Strict
+      content:
+        application/json:
+          schema:
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/SessionResponse'
     GetUserResponse:
       description: User information
       content:

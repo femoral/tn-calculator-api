@@ -7,6 +7,7 @@ import { makeCreateSessionRepository } from '../../src/sessions/data/create-sess
 import { makeGetUserByUsernameRepository } from '../../src/sessions/data/get-user-by-username.repository';
 import {
   buildGetUserQueryResponse,
+  buildSessionResponse,
   buildUserCredentials,
 } from './create-session.mock';
 import { mockResponse } from '../util';
@@ -93,7 +94,7 @@ describe('Create Session', () => {
       );
     });
 
-    it('should return a session cookie, when called', async () => {
+    it('should return a session cookie and session response, when called', async () => {
       await postSessionController(buildUserCredentials(), res, next);
 
       expect(res.cookie).toHaveBeenNthCalledWith(
@@ -108,7 +109,7 @@ describe('Create Session', () => {
           maxAge: 1000 * 60 * 60,
         }
       );
-      expect(res.end).toHaveBeenCalledTimes(1);
+      expect(res.json).toHaveBeenNthCalledWith(1, buildSessionResponse());
       expect(res.status).toHaveBeenNthCalledWith(1, 201);
     });
   });

@@ -1,6 +1,6 @@
 import { Password } from '../common/crypto/password';
 import { UnauthorizedError } from '../common/error/errors';
-import { UserCredentials, UserWithCredentials } from './session.model';
+import { Session, UserCredentials, UserWithCredentials } from './session.model';
 import { User } from '../users/user.model';
 
 export type CreateSessionRepository = (user: User) => Promise<string>;
@@ -10,7 +10,7 @@ export type GetUserByUsernameRepository = (
 
 export type CreateSessionInteractor = (
   credentials: UserCredentials
-) => Promise<string>;
+) => Promise<Session>;
 
 export const makeCreateSessionInteractor =
   (dependencies: {
@@ -27,5 +27,8 @@ export const makeCreateSessionInteractor =
       throw new UnauthorizedError('Invalid credentials');
     }
 
-    return await dependencies.createSession(user);
+    return {
+      token: await dependencies.createSession(user),
+      user,
+    };
   };
