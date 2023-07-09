@@ -21,6 +21,7 @@ import { makeCreateSessionInteractor } from '../sessions/create-session.interact
 import { makeCreateSessionRepository } from '../sessions/data/create-session.repository';
 import { makeGetUserByUsernameRepository } from '../sessions/data/get-user-by-username.repository';
 import {
+  makeDeleteRecordController,
   makeGetRecordsController,
   makePostRecordController,
 } from '../records/record.controller';
@@ -42,6 +43,8 @@ import { withErrorHandling } from '../common/error/handler';
 import { makeErrorMiddleware } from '../middleware/error.middleware';
 import { getDataBaseUrl } from './db';
 import { getFromEnv } from './env';
+import { makeDeleteRecordInteractor } from '../records/delete-record.interactor';
+import { makeDeleteRecordByIdRepository } from '../records/data/delete-record-by-id.interactor';
 
 export const makeApp = async () => {
   const pool = new Pool(getDataBaseUrl());
@@ -135,6 +138,12 @@ export const makeApp = async () => {
     }),
   });
 
+  const deleteRecordsController = makeDeleteRecordController({
+    deleteRecord: makeDeleteRecordInteractor({
+      deleteRecordById: makeDeleteRecordByIdRepository({ pool }),
+    }),
+  });
+
   const getOperationsController = makeGetOperationsController({
     getOperations: makeGetOperationsInteractor({
       getOperations: makeGetOperationsRepository({ pool }),
@@ -155,6 +164,10 @@ export const makeApp = async () => {
   app.post(
     '/api/v1/users/:userId/records',
     withErrorHandling(postRecordController)
+  );
+  app.delete(
+    '/api/v1/users/:userId/records/:recordId',
+    withErrorHandling(deleteRecordsController)
   );
 
   app.get('/api/v1/operations', withErrorHandling(getOperationsController));

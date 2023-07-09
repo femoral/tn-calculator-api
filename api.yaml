@@ -4,9 +4,10 @@ x-kusk:
     prefix: /api/v1
   upstream:
     service:
-      namespace: personal
+      namespace: femoral
       name: tn-calculator-api-http-svc
       port: 8080
+
 info:
   title: TN Calculator API
   description: |-

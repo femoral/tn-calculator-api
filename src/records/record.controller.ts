@@ -62,7 +62,7 @@ export const makeGetRecordsController =
       data: result.records,
       metadata: {
         page_size: castedPageSize,
-        total_count: result.full_count,
+        total_count: +result.full_count,
         total_pages: Math.ceil(result.full_count / castedPageSize),
       },
     });
