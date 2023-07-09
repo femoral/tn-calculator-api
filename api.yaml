@@ -1,4 +1,12 @@
 openapi: 3.0.4
+x-kusk:
+  path:
+    prefix: /api/v1
+  upstream:
+    service:
+      namespace: personal
+      name: tn-calculator-api-http-svc
+      port: 8080
 info:
   title: TN Calculator API
   description: |-
@@ -13,7 +21,7 @@ externalDocs:
   description: Source Code
   url: https://github.com/femoral/tn-calculator-api
 servers:
-  - url: http://localhost:3000/api/v1
+  - url: https://tn-calculator-app.femoral.dev/api/v1
 paths:
   /sessions:
     post:

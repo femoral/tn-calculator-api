@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tn-calculator-api
+  namespace: personal
   labels:
     app: tn-calculator-api
 spec:
@@ -49,11 +50,17 @@ spec:
             httpGet:
               path: /health
               port: 8080
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 60
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: tn-calculator-api-http-svc
+  namespace: personal
 spec:
   ports:
     - port: 8080
@@ -62,3 +69,428 @@ spec:
       name: http
   selector:
     app: tn-calculator-api
+---
+apiVersion: gateway.kusk.io/v1alpha1
+kind: API
+metadata:
+  name: tn-calculator-api-kusk
+  namespace: personal
+spec:
+  fleet:
+    name: kusk-gateway-envoy-fleet
+    namespace: kusk-system
+  spec: |
+    components:
+      parameters:
+        Page:
+          description: cursor of the page to return
+          example: 5
+          in: query
+          name: page
+          schema:
+            minimum: 1
+            type: integer
+        PageSize:
+          description: number of records to return on each page
+          example: 20
+          in: query
+          name: page_size
+          schema:
+            maximum: 50
+            minimum: 5
+            type: integer
+        RecordId:
+          description: id of the record, unique by user
+          example: 11
+          in: path
+          name: recordId
+          required: true
+        UserId:
+          description: unique id of the user
+          example: 123
+          in: path
+          name: userId
+          required: true
+      requestBodies:
+        PostSessionRequest:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionRequest'
+          description: User credentials
+        PostUserRecordRequest:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationExecution'
+          description: Operands and operation to execute
+      responses:
+        GetOperationsResponse:
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: '#/components/schemas/Operation'
+                    type: array
+                required:
+                - data
+          description: List of operations
+        GetUserRecordsResponse:
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: '#/components/schemas/Record'
+                    type: array
+                  metadata:
+                    $ref: '#/components/schemas/Metadata'
+                required:
+                - data
+                - metadata
+          description: User records
+        GetUserResponse:
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+                required:
+                - data
+          description: User information
+        InvalidCredentials:
+          description: Invalid credentials
+        NoContent:
+          description: No Content
+        PostSessionResponse:
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SessionResponse'
+                required:
+                - data
+          description: session cookie
+          headers:
+            Set-Cookie:
+              schema:
+                description: session cookie
+                example: SESSION=eyJhb;HttpOnly;Path=/;Max-Age=3600;Secure;SameSite=Strict
+                type: string
+        PostUserRecordResponse:
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Record'
+                required:
+                - data
+          description: Record created after executing the operation
+        ServerError:
+          description: Server Error
+        Unauthorized:
+          description: Unauthorized
+      schemas:
+        Metadata:
+          properties:
+            page_size:
+              description: Number of records returned on each page
+              example: 20
+              maximum: 50
+              minimum: 5
+              type: integer
+            total_count:
+              description: Total number of records
+              example: 100
+              type: integer
+            total_pages:
+              description: Total number of pages
+              example: 5
+              type: integer
+        Operation:
+          properties:
+            cost:
+              description: Cost of the operation
+              example: 100
+              format: number
+              type: string
+            id:
+              description: Id of the operation
+              example: 1
+              type: integer
+            type:
+              $ref: '#/components/schemas/OperationType'
+          required:
+          - id
+          - cost
+          - type
+        OperationExecution:
+          properties:
+            operands:
+              description: List of operands for arithmetic operations, not required for
+                RANDOM_STRING
+              example:
+              - 427
+              - 238
+              items:
+                description: operand
+                format: number
+                type: string
+              type: array
+            operation_type:
+              $ref: '#/components/schemas/OperationType'
+          required:
+          - operation_type
+        OperationType:
+          description: Type of the operation
+          enum:
+          - ADDITION
+          - SUBTRACTION
+          - MULTIPLICATION
+          - DIVISION
+          - SQUARE_ROOT
+          - RANDOM_STRING
+          type: string
+        Record:
+          properties:
+            amount:
+              description: cost of the operation
+              example: 100
+              format: number
+              type: string
+            date:
+              description: ISO 8601 date-time when the record was created
+              example: 2023‐06‐30T03:31:09Z
+              format: date-time
+              type: string
+            id:
+              description: id of the record
+              example: 10
+              type: number
+            operation_id:
+              description: id of the operation associated with the record
+              example: 9d845822-78ac-432c-8974-b1d3a3c3ea5b
+              type: number
+            operation_response:
+              description: result of the operation
+              example: 123
+              type: string
+            user_balance:
+              description: remaining user balance after the operation was performed
+              example: 500
+              format: number
+              type: string
+            user_id:
+              description: id of the user who triggered the operation
+              example: 28e73f15-bc26-49ff-8fdc-238d90e14034
+              type: string
+          required:
+          - id
+          - operation_id
+          - user_id
+          - amount
+          - user_balance
+          - operation_response
+          - date
+        SessionRequest:
+          properties:
+            password:
+              description: user password
+              example: P4ssw0rd
+              type: string
+            username:
+              description: username
+              example: john123
+              type: string
+          required:
+          - username
+          - password
+        SessionResponse:
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+          required:
+          - user
+        User:
+          properties:
+            balance:
+              description: user balance
+              example: 500
+              format: number
+              type: string
+            id:
+              description: user id
+              example: 123
+              type: string
+            username:
+              description: username
+              example: john123
+              type: string
+          required:
+          - id
+          - username
+      securitySchemes:
+        bearerAuth:
+          scheme: bearer
+          type: http
+        cookieAuth:
+          in: cookie
+          name: SESSION
+          type: apiKey
+    externalDocs:
+      description: Source Code
+      url: https://github.com/femoral/tn-calculator-api
+    info:
+      contact:
+        email: felipe@moralesm.cl
+      description: All in One calculator string generator and authentication server
+      license:
+        name: MIT
+        url: https://opensource.org/license/mit/
+      title: TN Calculator API
+      version: 1.0.0
+    openapi: 3.0.4
+    paths:
+      /operations:
+        get:
+          operationId: getOperations
+          responses:
+            "200":
+              $ref: '#/components/responses/GetOperationsResponse'
+            "401":
+              $ref: '#/components/responses/InvalidCredentials'
+            "500":
+              $ref: '#/components/responses/ServerError'
+          security:
+          - cookieAuth: []
+          summary: Get all operations
+          tags:
+          - operations
+      /sessions:
+        delete:
+          operationId: userLogout
+          responses:
+            "204":
+              $ref: '#/components/responses/NoContent'
+            "401":
+              $ref: '#/components/responses/InvalidCredentials'
+            "403":
+              $ref: '#/components/responses/Unauthorized'
+            "500":
+              $ref: '#/components/responses/ServerError'
+          security:
+          - cookieAuth: []
+          summary: Deletes an existing session, identifying by the session cookie
+          tags:
+          - authentication
+        post:
+          operationId: userLogin
+          requestBody:
+            $ref: '#/components/requestBodies/PostSessionRequest'
+          responses:
+            "201":
+              $ref: '#/components/responses/PostSessionResponse'
+            "401":
+              $ref: '#/components/responses/InvalidCredentials'
+            "500":
+              $ref: '#/components/responses/ServerError'
+          summary: Validates user credentials and creates a session cookie
+          tags:
+          - authentication
+      /users/{userId}:
+        get:
+          operationId: getUserById
+          parameters:
+          - $ref: '#/components/parameters/UserId'
+          responses:
+            "200":
+              $ref: '#/components/responses/GetUserResponse'
+            "401":
+              $ref: '#/components/responses/InvalidCredentials'
+            "403":
+              $ref: '#/components/responses/Unauthorized'
+            "500":
+              $ref: '#/components/responses/ServerError'
+          security:
+          - cookieAuth: []
+          summary: Get user by id
+          tags:
+          - users
+      /users/{userId}/records:
+        get:
+          operationId: getUserRecords
+          parameters:
+          - $ref: '#/components/parameters/UserId'
+          - $ref: '#/components/parameters/Page'
+          - $ref: '#/components/parameters/PageSize'
+          responses:
+            "200":
+              $ref: '#/components/responses/GetUserRecordsResponse'
+            "401":
+              $ref: '#/components/responses/InvalidCredentials'
+            "403":
+              $ref: '#/components/responses/Unauthorized'
+            "500":
+              $ref: '#/components/responses/ServerError'
+          security:
+          - cookieAuth: []
+          summary: Get user records
+          tags:
+          - records
+        post:
+          operationId: createUserRecords
+          parameters:
+          - $ref: '#/components/parameters/UserId'
+          requestBody:
+            $ref: '#/components/requestBodies/PostUserRecordRequest'
+          responses:
+            "201":
+              $ref: '#/components/responses/PostUserRecordResponse'
+            "401":
+              $ref: '#/components/responses/InvalidCredentials'
+            "403":
+              $ref: '#/components/responses/Unauthorized'
+            "500":
+              $ref: '#/components/responses/ServerError'
+          security:
+          - cookieAuth: []
+          summary: Executes an operation and creates a new record
+          tags:
+          - records
+      /users/{userId}/records/{recordId}:
+        delete:
+          operationId: disableUserRecordById
+          parameters:
+          - $ref: '#/components/parameters/UserId'
+          - $ref: '#/components/parameters/RecordId'
+          responses:
+            "204":
+              $ref: '#/components/responses/NoContent'
+            "401":
+              $ref: '#/components/responses/InvalidCredentials'
+            "403":
+              $ref: '#/components/responses/Unauthorized'
+            "500":
+              $ref: '#/components/responses/ServerError'
+          security:
+          - cookieAuth: []
+          summary: Disables a user record
+          tags:
+          - records
+    servers:
+    - url: https://tn-calculator-app.femoral.dev/api/v1
+    x-kusk:
+      path:
+        prefix: /api/v1
+      upstream:
+        service:
+          name: tn-calculator-api-http-svc
+          namespace: personal
+          port: 8080
+    
