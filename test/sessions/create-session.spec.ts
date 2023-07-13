@@ -6,16 +6,14 @@ import { makeCreateSessionInteractor } from '../../src/sessions/create-session.i
 import { makeCreateSessionRepository } from '../../src/sessions/data/create-session.repository';
 import { makeGetUserByUsernameRepository } from '../../src/sessions/data/get-user-by-username.repository';
 import {
+  buildDummyUser,
   buildGetUserQueryResponse,
   buildSessionResponse,
   buildUserCredentials,
 } from './create-session.mock';
 import { mockResponse } from '../util';
 import { NextFunction } from 'express';
-import {
-  NotFoundError,
-  UnauthorizedError,
-} from '../../src/common/error/errors';
+import { UnauthorizedError } from '../../src/common/error/errors';
 import { Password } from '../../src/common/crypto/password';
 import { Cache } from '../../src/common/cache/redis';
 import { Pool } from 'pg';
@@ -49,6 +47,7 @@ describe('Create Session', () => {
           cache: cache as unknown as Cache,
         }),
         password: password as unknown as Password,
+        dummyUser: buildDummyUser(),
         getUserByUsername: makeGetUserByUsernameRepository({
           pool: pool as unknown as Pool,
         }),
@@ -136,7 +135,7 @@ describe('Create Session', () => {
     it('should throw NotFoundError, when called', async () => {
       await expect(
         postSessionController(buildUserCredentials(), res, next)
-      ).rejects.toBeInstanceOf(NotFoundError);
+      ).rejects.toBeInstanceOf(UnauthorizedError);
     });
   });
 });

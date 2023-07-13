@@ -1,7 +1,8 @@
 openapi: 3.0.4
 x-kusk:
-  path:
-    prefix: /api/v1
+  validation:
+    request:
+      enabled: true
   upstream:
     service:
       namespace: femoral
@@ -21,10 +22,8 @@ info:
 externalDocs:
   description: Source Code
   url: https://github.com/femoral/tn-calculator-api
-servers:
-  - url: https://tn-calculator-app.femoral.dev/api/v1
 paths:
-  /sessions:
+  /api/v1/sessions:
     post:
       tags:
         - authentication
@@ -45,8 +44,8 @@ paths:
         - authentication
       summary: Deletes an existing session, identifying by the session cookie
       operationId: userLogout
-      security:
-        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SessionCookie'
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
@@ -57,16 +56,15 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
-  /users/{userId}:
+  /api/v1/users/{userId}:
     get:
       tags:
         - users
       parameters:
         - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/SessionCookie'
       summary: Get user by id
       operationId: getUserById
-      security:
-        - cookieAuth: [ ]
       responses:
         '200':
           $ref: '#/components/responses/GetUserResponse'
@@ -77,18 +75,27 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
-  /users/{userId}/records:
+  /api/v1/users/{userId}/records:
     get:
+      x-kusk:
+        validation:
+          request:
+            enabled: false
       tags:
         - records
       parameters:
+        - $ref: '#/components/parameters/SessionCookie'
         - $ref: '#/components/parameters/UserId'
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/OperationId'
+        - $ref: '#/components/parameters/Amount'
+        - $ref: '#/components/parameters/UserBalance'
+        - $ref: '#/components/parameters/OperationResponse'
+        - $ref: '#/components/parameters/Date'
       summary: Get user records
       operationId: getUserRecords
-      security:
-        - cookieAuth: [ ]
       responses:
         '200':
           $ref: '#/components/responses/GetUserRecordsResponse'
@@ -102,11 +109,10 @@ paths:
       tags:
         - records
       parameters:
+        - $ref: '#/components/parameters/SessionCookie'
         - $ref: '#/components/parameters/UserId'
       summary: Executes an operation and creates a new record
       operationId: createUserRecords
-      security:
-        - cookieAuth: [ ]
       requestBody:
         $ref: '#/components/requestBodies/PostUserRecordRequest'
       responses:
@@ -119,17 +125,16 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
-  /users/{userId}/records/{recordId}:
+  /api/v1/users/{userId}/records/{recordId}:
     delete:
       tags:
         - records
       parameters:
+        - $ref: '#/components/parameters/SessionCookie'
         - $ref: '#/components/parameters/UserId'
         - $ref: '#/components/parameters/RecordId'
       summary: Disables a user record
       operationId: disableUserRecordById
-      security:
-        - cookieAuth: [ ]
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
@@ -140,14 +145,14 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
-  /operations:
+  /api/v1/operations:
     get:
       tags:
           - operations
       summary: Get all operations
       operationId: getOperations
-      security:
-        - cookieAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/SessionCookie'
       responses:
         '200':
           $ref: '#/components/responses/GetOperationsResponse'
@@ -281,6 +286,7 @@ components:
         - id
         - cost
         - type
+        - operands
       properties:
         id:
           type: integer
@@ -293,6 +299,9 @@ components:
           format: number
         type:
           $ref: '#/components/schemas/OperationType'
+        operands:
+          type: integer
+          description: Number of operands required for the operation
   requestBodies:
     PostSessionRequest:
       description: User credentials
@@ -383,6 +392,14 @@ components:
 
 
   parameters:
+    SessionCookie:
+      in: 'cookie'
+      name: SESSION
+      required: true
+      description: Session id of the user
+      schema:
+        type: string
+        example: da5a7cb2b4053a4ede53872fd0d73287f71d2db0b592983b97762b68a6b510a8
     UserId:
       in: 'path'
       name: userId
@@ -398,27 +415,60 @@ components:
     PageSize:
       in: 'query'
       name: page_size
+      required: false
       description: number of records to return on each page
       example: 20
       schema:
-        type: integer
-        minimum: 5
+        type: string
         maximum: 50
     Page:
-        in: 'query'
-        name: page
-        description: cursor of the page to return
-        example: 5
-        schema:
-            type: integer
-            minimum: 1
+      in: 'query'
+      name: page
+      required: false
+      description: cursor of the page to return
+      example: 5
+      schema:
+          type: string
+    Id:
+      in: 'query'
+      name: id
+      required: false
+      description: id of the record
+      schema:
+        type: string
 
-
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: SESSION
+    OperationId:
+      in: 'query'
+      name: operation_id
+      required: false
+      description: id of the operation associated with the record
+      schema:
+        type: string
+    Amount:
+      in: 'query'
+      name: amount
+      required: false
+      description: cost of the operation
+      schema:
+        type: string
+    UserBalance:
+      in: 'query'
+      name: user_balance
+      required: false
+      description: remaining user balance after the operation was performed
+      schema:
+        type: string
+    OperationResponse:
+      in: 'query'
+      name: operation_response
+      required: false
+      description: result of the operation
+      schema:
+        type: string
+    Date:
+      in: 'query'
+      name: date
+      required: false
+      description: ISO 8601 date-time when the record was created
+      schema:
+        type: string

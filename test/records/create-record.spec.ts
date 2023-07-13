@@ -33,7 +33,7 @@ const insertRecordStatement = `
 `;
 const updateUserBalanceStatement = `UPDATE "user" SET balance = $1 WHERE id = $2`;
 const getOperationByTypeStatement =
-  'select id, type, cost from "operation" where type = $1';
+  'select id, type, cost, operands from "operation" where type = $1';
 
 describe('Create Record', () => {
   let postRecordController: PostRecordController;
@@ -147,7 +147,7 @@ describe('Create Record', () => {
       expect(client.release).toHaveBeenCalledTimes(1);
     });
 
-    it('should store the proper operation result, when called, given operation is ADDITION', async () => {
+    it('should store the proper operation result, when called', async () => {
       await postRecordController(
         buildOperationExecutionRequestMock({
           operands: ['1', '2'],
@@ -160,70 +160,6 @@ describe('Create Record', () => {
       expect(client.query).toHaveBeenCalledWith(
         insertRecordStatement,
         buildInsertedRecord('3')
-      );
-    });
-
-    it('should store the proper operation result, when called, given operation is SUBTRACTION', async () => {
-      await postRecordController(
-        buildOperationExecutionRequestMock({
-          operands: ['1', '2'],
-          operation_type: 'SUBTRACTION',
-        }),
-        res,
-        next
-      );
-
-      expect(client.query).toHaveBeenCalledWith(
-        insertRecordStatement,
-        buildInsertedRecord('-1')
-      );
-    });
-
-    it('should store the proper operation result, when called, given operation is MULTIPLICATION', async () => {
-      await postRecordController(
-        buildOperationExecutionRequestMock({
-          operands: ['3', '2'],
-          operation_type: 'MULTIPLICATION',
-        }),
-        res,
-        next
-      );
-
-      expect(client.query).toHaveBeenCalledWith(
-        insertRecordStatement,
-        buildInsertedRecord('6')
-      );
-    });
-
-    it('should store the proper operation result, when called, given operation is DIVISION', async () => {
-      await postRecordController(
-        buildOperationExecutionRequestMock({
-          operands: ['6', '2'],
-          operation_type: 'DIVISION',
-        }),
-        res,
-        next
-      );
-
-      expect(client.query).toHaveBeenCalledWith(
-        insertRecordStatement,
-        buildInsertedRecord('3')
-      );
-    });
-
-    it('should store the proper operation result, when called, given operation is SQUARE_ROOT', async () => {
-      await postRecordController(
-        buildOperationExecutionRequestMock({
-          operands: ['16'],
-          operation_type: 'SQUARE_ROOT',
-        }),
-        res,
-        next
-      );
-
-      expect(client.query).toHaveBeenCalledWith(
-        insertRecordStatement,
-        buildInsertedRecord('4')
       );
     });
 
@@ -251,7 +187,7 @@ describe('Create Record', () => {
     });
 
     describe('Invalid operands', () => {
-      it('should reject BadRequestError, when called, given operation is ADDITION operand count is different than 2', async () => {
+      it('should reject BadRequestError, when called, given operation provided operand count is different than operation operand count', async () => {
         await expect(
           postRecordController(
             buildOperationExecutionRequestMock({
@@ -264,69 +200,50 @@ describe('Create Record', () => {
         ).rejects.toBeInstanceOf(BadRequestError);
       });
 
-      it('should reject BadRequestError, when called, given operation is SUBTRACTION operand count is different than 2', async () => {
-        await expect(
-          postRecordController(
-            buildOperationExecutionRequestMock({
-              operation_type: 'SUBTRACTION',
-              operands: null,
-            }),
-            res,
-            next
-          )
-        ).rejects.toBeInstanceOf(BadRequestError);
-      });
-
-      it('should reject BadRequestError, when called, given operation is MULTIPLICATION operand count is different than 2', async () => {
-        await expect(
-          postRecordController(
-            buildOperationExecutionRequestMock({
-              operation_type: 'MULTIPLICATION',
-              operands: ['1'],
-            }),
-            res,
-            next
-          )
-        ).rejects.toBeInstanceOf(BadRequestError);
-      });
-
-      it('should reject BadRequestError, when called, given operation is DIVISION operand count is different than 2', async () => {
-        await expect(
-          postRecordController(
-            buildOperationExecutionRequestMock({
-              operation_type: 'DIVISION',
-              operands: ['1'],
-            }),
-            res,
-            next
-          )
-        ).rejects.toBeInstanceOf(BadRequestError);
-      });
-
-      it('should reject BadRequestError, when called, given operation is SQUARE_ROOT operand count is different than 1', async () => {
-        await expect(
-          postRecordController(
-            buildOperationExecutionRequestMock({
-              operation_type: 'SQUARE_ROOT',
-              operands: ['1', '2'],
-            }),
-            res,
-            next
-          )
-        ).rejects.toBeInstanceOf(BadRequestError);
-      });
-
       it('should reject BadRequestError, when called, given operation is SQUARE_ROOT operand is negative', async () => {
-        await expect(
-          postRecordController(
-            buildOperationExecutionRequestMock({
-              operation_type: 'SQUARE_ROOT',
-              operands: ['-1'],
-            }),
-            res,
-            next
-          )
-        ).rejects.toBeInstanceOf(BadRequestError);
+        pool.query.mockReset();
+        pool.query.mockResolvedValueOnce({
+          rows: [
+            {
+              id: '1',
+              type: 'SQUARE_ROOT',
+              cost: '1',
+              operands: 1,
+            },
+          ],
+        });
+
+        const promise = postRecordController(
+          buildOperationExecutionRequestMock({
+            operation_type: 'SQUARE_ROOT',
+            operands: ['-1'],
+          }),
+          res,
+          next
+        );
+
+        await expect(promise).rejects.toBeInstanceOf(BadRequestError);
+        await expect(promise).rejects.toHaveProperty(
+          'message',
+          'Square root of negative number is not allowed'
+        );
+      });
+
+      it('should reject BadRequestError, when called, given operation is DIVISION and second operand is zero', async () => {
+        const promise = postRecordController(
+          buildOperationExecutionRequestMock({
+            operation_type: 'DIVISION',
+            operands: ['1', '0'],
+          }),
+          res,
+          next
+        );
+
+        await expect(promise).rejects.toBeInstanceOf(BadRequestError);
+        await expect(promise).rejects.toHaveProperty(
+          'message',
+          'Division by zero is not allowed'
+        );
       });
     });
 

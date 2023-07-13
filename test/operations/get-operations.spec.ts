@@ -34,7 +34,7 @@ describe('Get All Operations', () => {
 
     expect(pool.query).toHaveBeenNthCalledWith(
       1,
-      `select id, type, cost from "operation"`
+      `select id, type, cost, operands from "operation"`
     );
   });
 

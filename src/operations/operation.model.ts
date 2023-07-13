@@ -13,6 +13,7 @@ export type Operation = {
   id: number;
   type: OperationType;
   cost: string;
+  operands: number;
 };
 
 export type ArithmeticOperation = {

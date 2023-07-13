@@ -30,3 +30,10 @@ export const buildSessionResponse = (): ApiResponse<SessionResponse> => ({
     },
   },
 });
+
+export const buildDummyUser = () => ({
+  id: 'dummy',
+  balance: '0',
+  username: 'dummy',
+  password: 'hashedPassword',
+});

@@ -45,6 +45,7 @@ import { getDataBaseUrl } from './db';
 import { getFromEnv } from './env';
 import { makeDeleteRecordInteractor } from '../records/delete-record.interactor';
 import { makeDeleteRecordByIdRepository } from '../records/data/delete-record-by-id.interactor';
+import { UserWithCredentials } from '../sessions/session.model';
 
 export const makeApp = async () => {
   const pool = new Pool(getDataBaseUrl());
@@ -104,11 +105,19 @@ export const makeApp = async () => {
     }),
   });
 
+  const dummyUser: UserWithCredentials = {
+    id: 'dummy',
+    balance: '0',
+    username: 'dummy',
+    password: await password.hash('dummy'),
+  };
+
   const postSessionController = makePostSessionController({
     createSession: makeCreateSessionInteractor({
       createSession: makeCreateSessionRepository({ cache }),
       getUserByUsername: makeGetUserByUsernameRepository({ pool }),
       password,
+      dummyUser,
     }),
   });
 

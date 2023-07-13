@@ -31,6 +31,7 @@ export const buildGetOperationByTypeQueryMock = (
       id: 1,
       type: type,
       cost: '5.55',
+      operands: 2,
     },
   ],
 });

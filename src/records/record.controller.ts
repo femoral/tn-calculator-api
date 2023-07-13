@@ -52,7 +52,7 @@ export const makeGetRecordsController =
     const result = await dependencies.getRecords(
       {
         page: castedPage,
-        page_size: castedPageSize,
+        page_size: castedPageSize > 50 ? 50 : castedPageSize,
         filter,
       },
       { session: req.session }
@@ -62,8 +62,8 @@ export const makeGetRecordsController =
       data: result.records,
       metadata: {
         page_size: castedPageSize,
-        total_count: +result.full_count,
-        total_pages: Math.ceil(result.full_count / castedPageSize),
+        total_count: +result.full_count || 0,
+        total_pages: Math.ceil(result.full_count / castedPageSize) || 0,
       },
     });
   };

@@ -5,6 +5,7 @@ import {
   OperationExecution,
   OperationType,
 } from '../operations/operation.model';
+import { BadRequestError } from '../common/error/errors';
 
 export type CreateRecordRepository = (
   newRecord: Partial<Record>
@@ -38,6 +39,10 @@ export const makeExecuteOperationInteractor =
       operation_id: operation.id,
       amount: operation.cost,
     };
+
+    if (operationExecution.operands.length !== operation.operands) {
+      throw new BadRequestError('Invalid number of operands');
+    }
 
     if (operation.type === 'RANDOM_STRING') {
       record.operation_response = await dependencies.executeStringOperation(

@@ -6,12 +6,12 @@ const statement = `
     from record where 
     user_id = $1 
     and status = 'ENABLED'
-    and ($2::int is null or id = $2)
-    and ($3::int is null or operation_id = $3)
-    and ($4::numeric is null or amount = $4)
-    and ($5::numeric is null or user_balance = $5)
+    and ($2::text is null or id::text like '%' || $2 || '%')
+    and ($3::numeric is null or operation_id = $3)
+    and ($4::text is null or amount::text like '%' || $4 || '%')
+    and ($5::text is null or user_balance::text like '%' || $5 || '%')
     and ($6::text is null or operation_response ilike '%' || $6 || '%')
-    and ($7::date is null or date = $7)
+    and ($7::date is null or date::text like $7 || '%')
     order by date desc limit $8 offset $9`;
 
 export const makeGetRecordsByUserIdRepository =

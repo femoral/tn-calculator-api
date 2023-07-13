@@ -17,12 +17,28 @@ export const makeCreateSessionInteractor =
     createSession: CreateSessionRepository;
     getUserByUsername: GetUserByUsernameRepository;
     password: Password;
+    dummyUser: UserWithCredentials;
   }): CreateSessionInteractor =>
   async (credentials) => {
-    const user = await dependencies.getUserByUsername(credentials.username);
+    let user: UserWithCredentials;
+
+    try {
+      user = await dependencies.getUserByUsername(credentials.username);
+    } catch (e) {
+      //TODO: implement proper logging
+      console.warn(
+        'Failed to fetch user, using dummy to prevent user enumeration',
+        e
+      );
+      user = dependencies.dummyUser;
+    }
 
     if (
-      !(await dependencies.password.verify(user.password, credentials.password))
+      !(await dependencies.password.verify(
+        user.password,
+        credentials.password
+      )) ||
+      user.id === 'dummy'
     ) {
       throw new UnauthorizedError('Invalid credentials');
     }

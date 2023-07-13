@@ -13,47 +13,25 @@ export const makeArithmeticOperator =
   };
 
 const addition = (operands: string[]) => {
-  if (operands.length != 2)
-    throw new BadRequestError(
-      'Invalid number of operands for addition operation'
-    );
-
   return Big(operands[0]).add(Big(operands[1]));
 };
 
 const subtraction = (operands: string[]) => {
-  if (operands.length != 2)
-    throw new BadRequestError(
-      'Invalid number of operands for subtraction operation'
-    );
-
   return Big(operands[0]).sub(Big(operands[1]));
 };
 
 const multiplication = (operands: string[]) => {
-  if (operands.length != 2)
-    throw new BadRequestError(
-      'Invalid number of operands for multiplication operation'
-    );
-
   return Big(operands[0]).mul(Big(operands[1]));
 };
 
 const division = (operands: string[]) => {
-  if (operands.length != 2)
-    throw new BadRequestError(
-      'Invalid number of operands for division operation'
-    );
+  if (Big(operands[1]).eq(0))
+    throw new BadRequestError('Division by zero is not allowed');
 
   return Big(operands[0]).div(Big(operands[1]));
 };
 
 const squareRoot = (operands: string[]) => {
-  if (operands.length != 1)
-    throw new BadRequestError(
-      'Invalid number of operands for square root operation'
-    );
-
   const operand = Big(operands[0]);
 
   if (operand.lt(0))
