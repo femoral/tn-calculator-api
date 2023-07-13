@@ -5,7 +5,7 @@ export const getDataBaseUrl = (): PoolConfig => {
   const host = getFromEnv('DB_HOST', 'localhost');
   const port = getFromEnv('DB_PORT', '5432');
   const database = getFromEnv('DB_DATABASE', 'postgres');
-  const password = getFromEnv('DB_PASSWORD', 'localtest');
+  const password = getFromEnv('DB_PASSWORD', 'localpassword');
   const user = getFromEnv('DB_USER', 'postgres');
   const schema = getFromEnv('DB_SCHEMA', 'public');
 

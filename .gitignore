@@ -1,6 +1,10 @@
 node_modules/
+.api_modules/
+.pnpm/
+.pnpm-store/
 .idea/
 .vscode/
 coverage/
 dist/
 pruned/
+.data/
