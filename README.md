@@ -2,7 +2,7 @@
 
 ## Description
 
-This is a calculator API that can perform basic arithmetic operations. It is built using Node.js, Express.js and PostgreSQL.
+This is a calculator API that can perform basic arithmetic operations. Made for [tn-calculator-app](https://github.com/femoral/tn-calculator-app). It is built using Node.js, Express.js and PostgreSQL.
 
 ## Pre requisites
 
@@ -52,7 +52,6 @@ curl --location 'http://localhost:3000/api/v1/users' \
 
 | Variable | Description | Default value          |
 | --- | --- |------------------------|
-| NODE_ENV | Node environment | development            |
 | APP_PORT | Port where the API will be listening | 3000                   |
 | REDIS_URL | Redis URL | redis://localhost:6379 |
 | DB_HOST | PostgreSQL host | localhost              |
